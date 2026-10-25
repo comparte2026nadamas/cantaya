@@ -312,6 +312,7 @@ function startTV() {
   function onYTState(e) {
     const was = playing;
     playing = e.data === YT.PlayerState.PLAYING;
+    if (playing && !was) playingSince = performance.now();
     if (e.data === YT.PlayerState.ENDED) finishSong();
     if (was !== playing) { broadcastState(); $('#btnPause').textContent = playing ? '⏸ Pausa' : '▶ Seguir'; }
   }
@@ -339,6 +340,7 @@ function startTV() {
     now = queue.shift(); store.set('queue', queue);
     session = new ScoreSession(); playing = false;
     $('#idle').classList.add('hidden'); $('#hud').classList.remove('hidden');
+    resetAdTracking();
     $('#hudSinger').textContent = now.singer; $('#hudTitle').textContent = now.title; $('#hudScore').textContent = '–';
     loadVideo(now.id); renderQueue(); broadcastState();
   }
@@ -366,7 +368,7 @@ function startTV() {
   function command(c) {
     if (c === 'skip') { if (scoring) playNext(); else if (now) finishSong(); else playNext(); }
     else if (c === 'pause') { if (!player || !now) return; if (playing) player.pauseVideo(); else player.playVideo(); }
-    else if (c === 'restart') { if (!player || !now || scoring) return; player.seekTo(0, true); player.playVideo(); session = new ScoreSession(); }
+    else if (c === 'restart') { if (!player || !now || scoring) return; player.seekTo(0, true); player.playVideo(); session = new ScoreSession(); resetAdTracking(); }
   }
   $('#btnSkip').onclick = () => command('skip');
   $('#btnPause').onclick = () => command('pause');
@@ -448,6 +450,26 @@ function startTV() {
   $('#setNewRoom').onclick = () => { code = newCode(); store.set('room', code); renderRoom(); mics.forEach((m, id) => removeMic(id)); try { peer.destroy(); } catch (e) {} createPeer(); toast('Nuevo código: ' + code); };
 
   // ---------- bucle de análisis ----------
+  // Detección de anuncios: solo cuenta para la nota mientras la canción avanza de verdad.
+  // Durante un anuncio (o si se traba cargando) el tiempo del video no se mueve.
+  let lastT = -1, lastAdvanceAt = 0, playingSince = 0, adShown = false;
+  function songAdvancing() {
+    if (!player || typeof player.getCurrentTime !== 'function') return true; // sin reproductor (pruebas)
+    const nowMs = performance.now();
+    let t = 0; try { t = player.getCurrentTime() || 0; } catch (e) {}
+    if (lastT >= 0 && t > lastT + 0.001 && t - lastT < 5) lastAdvanceAt = nowMs;
+    lastT = t;
+    return nowMs - lastAdvanceAt < 900;
+  }
+  function resetAdTracking() { lastT = -1; lastAdvanceAt = 0; playingSince = performance.now(); adShown = false; $('#hudTitle').style.color = ''; }
+  function showAdNotice(on) {
+    if (on === adShown || !now) return;
+    adShown = on;
+    $('#hudTitle').textContent = on ? '📢 Publicidad: no cuenta para la nota' : now.title;
+    $('#hudTitle').style.color = on ? 'var(--yellow)' : '';
+  }
+  window.__cantaya.resetAdTracking = resetAdTracking;
+
   let hudTick = 0;
   setInterval(() => {
     if (!ctx) return;
@@ -460,7 +482,10 @@ function startTV() {
       if (!best || r.rms > best.rms) best = r;
     });
     const r = singerMic ? singerMic.last : best;
-    if (session && playing && !scoring) { if (r) session.hadMic = true; session.push(r); }
+    const advancing = playing ? songAdvancing() : false;
+    // aviso de publicidad: sonando pero la canción no avanza por más de 2 s
+    showAdNotice(playing && !advancing && performance.now() - playingSince > 2000);
+    if (session && playing && advancing && !scoring) { if (r) session.hadMic = true; session.push(r); }
     if (++hudTick % 2) return;
     mics.forEach(m => { const el = document.querySelector(`[data-lvl="${CSS.escape(m.id)}"]`); if (el) el.style.width = Math.min(100, m.level * 400) + '%'; });
     if (now) {
