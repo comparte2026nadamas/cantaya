@@ -6,3 +6,9 @@
   for = "/*"
   [headers.values]
     Permissions-Policy = "microphone=(self)"
+
+# Atajo para la TV: cantaya-karaoke.netlify.app/tv
+[[redirects]]
+  from = "/tv"
+  to = "/?tv"
+  status = 302

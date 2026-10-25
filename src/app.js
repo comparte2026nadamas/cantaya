@@ -144,7 +144,10 @@ function startTV() {
   let code = store.get('room', null) || newCode(); store.set('room', code);
   let queue = store.get('queue', []);
   let now = null, playing = false, scoring = false, session = null, scoreTimer = null;
-  let apiKey = store.get('apikey', '');
+  // Clave de YouTube por defecto (restringida en Google Cloud al dominio de CantaYa).
+  // Así cualquier pantalla (laptop o Google TV) busca canciones sin escribir nada.
+  const DEFAULT_YT_KEY = 'AIzaSyCzOcQVrHDalc7LEFqtVgRMNo33Jk5ZzT4';
+  let apiKey = store.get('apikey', '') || DEFAULT_YT_KEY;
   const settings = Object.assign({ micVol: 1, reverb: 0.2 }, store.get('settings', {}));
   const mics = new Map();
   let ctx, voiceBus, wet, peer, idRetries = 0, player = null, ytReady = false, pendingVideo = null, lastSinger = store.get('lastSinger', 'Invitado');
@@ -442,7 +445,7 @@ function startTV() {
   $('#setClose').onclick = () => $('#settings').classList.add('hidden');
   $('#setVol').oninput = e => { settings.micVol = +e.target.value; if (voiceBus) voiceBus.gain.value = settings.micVol; store.set('settings', settings); };
   $('#setRev').oninput = e => { settings.reverb = +e.target.value; if (wet) wet.gain.value = settings.reverb; store.set('settings', settings); };
-  $('#setSave').onclick = () => { apiKey = $('#setKey').value.trim(); store.set('apikey', apiKey); $('#settings').classList.add('hidden'); broadcastState(); toast(apiKey ? '✓ Clave guardada' : 'Clave borrada'); };
+  $('#setSave').onclick = () => { store.set('apikey', $('#setKey').value.trim()); apiKey = $('#setKey').value.trim() || DEFAULT_YT_KEY; $('#settings').classList.add('hidden'); broadcastState(); toast(apiKey ? '✓ Clave guardada' : 'Clave borrada'); };
   $('#setTest').onclick = async () => {
     const old = apiKey; apiKey = $('#setKey').value.trim();
     try { const r = await doSearch('despacito'); toast(r.length ? '✓ ¡La clave funciona!' : 'La clave responde pero sin resultados'); }
@@ -499,6 +502,7 @@ function startTV() {
 
   // ---------- arranque ----------
   renderRoom(); renderQueue(); renderRanking(); renderMics();
+  setTimeout(() => $('#tvStartBtn').focus(), 50);   // control remoto de la TV: OK = empezar
   $('#tvStartBtn').onclick = () => {
     $('#tvStart').classList.add('hidden');
     initAudio(); loadYT(); createPeer();
