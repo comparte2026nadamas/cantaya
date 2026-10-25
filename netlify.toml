@@ -10,5 +10,5 @@
 # Atajo para la TV: cantaya-karaoke.netlify.app/tv
 [[redirects]]
   from = "/tv"
-  to = "/?tv"
-  status = 302
+  to = "/index.html"
+  status = 200

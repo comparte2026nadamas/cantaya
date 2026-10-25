@@ -173,7 +173,7 @@ function startTV() {
   }
 
   // ---------- sala / QR ----------
-  const micUrl = () => `${location.origin}${location.pathname}?mic=${code}${TEST_PARAMS}`;
+  const micUrl = () => `${location.origin}/?mic=${code}${TEST_PARAMS}`;
   function renderRoom() {
     $('#roomCode').textContent = code;
     $('#roomUrl').textContent = micUrl().replace(/^https?:\/\//, '');
@@ -644,9 +644,10 @@ function startMic(initialCode) {
 }
 
 /* ---------------- ruteo ---------------- */
+var boot = document.getElementById('boot'); if (boot) boot.remove();
 if (typeof Peer === 'undefined') { document.body.innerHTML = '<p style="padding:24px">No se pudo cargar el módulo de conexión. Recarga la página.</p>'; return; }
 if (P.has('mic')) startMic(P.get('mic'));
-else if (P.has('tv')) startTV();
+else if (P.has('tv') || /\/tv\/?$/i.test(location.pathname)) startTV();
 else {
   show('#home');
   $('#goTv').onclick = () => { location.search = '?tv' + TEST_PARAMS; };

@@ -138,6 +138,15 @@ h2,h3{margin:0}
 </style>
 </head>
 <body>
+<div id="boot" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-size:1.4rem">Cargando CantaYa…</div>
+<script>
+/* Si algo falla en un navegador viejo (por ejemplo el de una TV), mostrar el error en pantalla */
+window.onerror = function (msg, src, line) {
+  var b = document.getElementById('boot');
+  if (!b) return;   /* la app ya arrancó: los errores menores no se muestran */
+  b.innerHTML = 'Este navegador tuvo un problema con CantaYa.<br><small>' + String(msg).replace(/</g, '&lt;') + ' (línea ' + line + ')</small><br><small>' + navigator.userAgent.replace(/</g, '&lt;') + '</small>';
+};
+</script>
 
 <!-- ========== INICIO ========== -->
 <section id="home" class="hidden">
