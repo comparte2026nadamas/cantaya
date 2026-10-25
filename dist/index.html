@@ -2724,6 +2724,8 @@ function startTV() {
     wet = ctx.createGain(); wet.gain.value = settings.reverb;
     voiceBus.connect(dry).connect(ctx.destination);
     voiceBus.connect(conv).connect(wet).connect(ctx.destination);
+    const outAn = ctx.createAnalyser(); outAn.fftSize = 1024; voiceBus.connect(outAn);
+    window.__cantaya.outLevel = () => { const b = new Float32Array(1024); outAn.getFloatTimeDomainData(b); return Math.sqrt(b.reduce((x, y) => x + y * y, 0) / b.length); };
     ctx.resume();
   }
   function makeImpulse(c, sec, decay) {
