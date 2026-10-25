@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CantaYa Karaoke</title>
+<meta name="theme-color" content="#0d0a1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0a1a;--panel:#171228;--panel2:#221a3b;--line:#30285a;--text:#f3efff;--muted:#a59cc7;--pink:#ff3ea5;--violet:#9b5cff;--cyan:#22d3ee;--yellow:#ffd23f;--green:#34d399;--red:#f87171}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Outfit,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(1200px 600px at 80% -10%,#2a1150 0,transparent 60%),radial-gradient(900px 500px at -10% 110%,#0b2a4a 0,transparent 60%),var(--bg);background-attachment:fixed}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:.65em 1em;background:var(--panel2);color:var(--text);font-weight:600;transition:transform .08s,filter .15s}
+button:hover{filter:brightness(1.15)}button:active{transform:scale(.97)}
+button.primary{background:linear-gradient(135deg,var(--pink),var(--violet));color:#fff}
+button.huge{font-size:1.25rem;padding:.9em 1.6em;border-radius:16px}
+button:disabled{opacity:.45;cursor:default}
+input,select{font:inherit;background:#0f0b1f;border:1px solid var(--line);color:var(--text);border-radius:12px;padding:.65em .9em;width:100%;min-width:0}
+input:focus,select:focus{outline:2px solid var(--violet);outline-offset:1px}
+input[type=range]{padding:0;accent-color:var(--pink)}
+input[type=checkbox]{width:auto;accent-color:var(--pink);transform:scale(1.3)}
+label{display:flex;flex-direction:column;gap:6px;font-size:.92rem;color:var(--muted)}
+label.check{flex-direction:row;align-items:center;gap:10px;color:var(--text)}
+h2,h3{margin:0}
+.hidden{display:none!important}
+.muted{color:var(--muted)}.small{font-size:.85rem}
+.logo{font-weight:800;letter-spacing:-.03em;font-size:1.5rem}.logo b{background:linear-gradient(135deg,var(--pink),var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo.big{font-size:3.2rem}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;padding:.25em .7em;border-radius:99px;background:var(--panel2);color:var(--muted);white-space:nowrap}
+.pill.ok{background:#0f3a2c;color:var(--green)}.pill.bad{background:#3d1520;color:var(--red)}
+.err{color:var(--red);min-height:1.2em;margin:0}
+.overlay{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;background:rgba(13,10,26,.94);backdrop-filter:blur(8px)}
+#toasts{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(92vw,520px);pointer-events:none}
+.toast{background:#2b2150;border:1px solid var(--line);padding:.7em 1.1em;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:tin .25s ease-out;text-align:center}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}}
+
+/* HOME */
+.home-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px 16px;text-align:center}
+.home-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;width:min(720px,100%);margin-top:16px}
+.card-btn{display:flex;flex-direction:column;gap:8px;align-items:center;padding:24px;border-radius:20px;background:var(--panel);border:1px solid var(--line);text-align:center}
+.card-btn .ico{font-size:2.6rem}.card-btn small{color:var(--muted);font-weight:400}
+.card-btn form{width:100%;margin-top:6px;flex-wrap:nowrap}
+#homeCode,#mjCode{text-transform:uppercase;letter-spacing:.25em;text-align:center;font-weight:800}
+
+/* TV */
+#tv{display:grid;grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:auto minmax(0,1fr);gap:14px;height:100vh;padding:14px}
+.tv-head{grid-column:1/-1;display:flex;align-items:center;gap:14px}
+.search{display:flex;gap:8px;flex:1;max-width:720px}
+.stage{position:relative;display:flex;flex-direction:column;min-height:0;border-radius:18px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.video{position:relative;flex:1;min-height:0}
+#ytBox,#ytBox iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;background:radial-gradient(600px 300px at 50% 40%,#2a1150,#0d0a1a)}
+.idle h2{font-size:1.6rem;max-width:620px}
+.hud{display:grid;grid-template-columns:auto 1fr auto 160px auto;align-items:center;gap:18px;padding:10px 18px;background:linear-gradient(90deg,#1b1233,#14102a);border-top:1px solid var(--line)}
+.hud small{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
+.hud-singer b{font-size:1.2rem;color:var(--yellow)}
+.hud-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.hud-note{font-weight:800;font-size:1.4rem;min-width:70px;text-align:center;color:var(--cyan)}
+.meter{height:10px;border-radius:9px;background:#0a0716;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--yellow),var(--pink));transition:width .08s linear}
+.hud-score b{font-size:1.6rem;font-weight:800}
+.results{position:absolute;inset:0;z-index:5;background:rgba(13,10,26,.97);display:flex;flex-direction:column;min-height:0}
+.results-head{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.results-head b{flex:1}.results-head label{flex-direction:row;align-items:center;gap:8px}.results-head select{width:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;padding:16px;overflow:auto}
+.vcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;padding:0;text-align:left;font-weight:400;display:flex;flex-direction:column}
+.vcard img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#000}
+.vcard div{padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.vcard b{font-size:.92rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vcard small{color:var(--muted)}
+.vcard .add{color:var(--pink);font-weight:600}
+.side{display:flex;flex-direction:column;gap:14px;min-height:0;overflow:auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card h3{font-size:1rem;display:flex;align-items:center;gap:8px}
+.card.grow{flex:1;min-height:180px}
+.room{flex-direction:row;align-items:center;gap:14px}
+#qr{background:#fff;border-radius:12px;padding:6px;line-height:0;flex:none}
+#qr img{width:128px;height:128px;image-rendering:pixelated}
+.code{font-size:2rem;font-weight:800;letter-spacing:.15em;color:var(--yellow)}
+.url{word-break:break-all;font-size:.72rem}
+.list{display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:0}
+.item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;background:var(--panel2)}
+.item img{width:64px;height:36px;object-fit:cover;border-radius:6px;flex:none}
+.item .t{flex:1;min-width:0}.item .t b{display:block;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item .t small{color:var(--muted)}
+.item .meter{width:70px;flex:none}
+.item button{padding:.35em .6em;font-size:.85rem}
+.ctrls{justify-content:center}
+.rank{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:4px;font-size:.9rem}
+.rank li span{color:var(--muted)}.rank li b{color:var(--yellow);float:right}
+.modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px;width:min(520px,100%);display:flex;flex-direction:column;gap:14px;max-height:92vh;overflow:auto}
+.modal-card ol{margin:0;padding-left:1.2em;color:var(--muted);font-size:.85rem;display:flex;flex-direction:column;gap:4px}
+.modal-card a{color:var(--cyan)}
+.end{justify-content:flex-end}
+
+/* SCORE */
+.score-card{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(560px,100%)}
+.score-card h3{font-size:1.2rem;color:var(--muted);font-weight:400;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.big-score{font-size:8rem;font-weight:800;line-height:1;background:linear-gradient(135deg,var(--yellow),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+.score-msg{font-size:1.6rem;font-weight:800}
+.bars{width:100%;display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.bar{display:grid;grid-template-columns:110px 1fr 40px;align-items:center;gap:10px;text-align:left;font-size:.92rem}
+.bar .meter{height:12px}.bar b{text-align:right}
+
+/* PHONE */
+.phone{max-width:520px;margin:0 auto;min-height:100vh;padding:20px 16px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px}
+#micJoin{justify-content:center;text-align:center}
+#micJoin label{text-align:left}
+.tips{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-align:left;font-size:.85rem;color:var(--muted)}
+.tips ul{margin:6px 0 0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+.m-top{display:flex;align-items:center;justify-content:space-between}
+.now{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px;font-size:.92rem}
+.now b{color:var(--yellow)}
+.now.mine{border-color:var(--pink);box-shadow:0 0 0 2px rgba(255,62,165,.25)}
+.bigmic{position:relative;align-self:center;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#3a2a6a,#1a1233);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px solid var(--line);margin:6px 0}
+.bigmic .mi{font-size:4rem;z-index:1}.bigmic small{z-index:1;color:var(--muted);font-weight:600;font-size:1rem}
+#mRing{position:absolute;inset:-6px;border-radius:50%;border:6px solid var(--pink);opacity:.15;transform:scale(1);transition:transform .07s linear,opacity .07s linear}
+.bigmic.muted{filter:grayscale(1);opacity:.6}
+.tabs{display:flex;gap:6px;background:var(--panel);padding:4px;border-radius:14px}
+.tab{flex:1;background:transparent}.tab.on{background:var(--panel2)}
+.mlist{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.mlist .item{text-align:left;font-weight:400;padding:8px;width:100%}
+.mlist .item img{width:88px;height:50px}
+
+@media (max-width:900px){
+  #tv{grid-template-columns:1fr;grid-template-rows:auto auto auto;height:auto;min-height:100vh}
+  .stage{min-height:56vw}
+  .hud{grid-template-columns:auto 1fr auto;}
+  .hud-title,.hud-meter{display:none}
+  .tv-head{flex-wrap:wrap}.search{order:3;flex-basis:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ========== INICIO ========== -->
+<section id="home" class="hidden">
+  <div class="home-wrap">
+    <div class="logo big">Canta<b>Ya</b></div>
+    <p class="muted">Karaoke con YouTube. Tu celular es el micrófono.</p>
+    <div class="home-cards">
+      <button class="card-btn" id="goTv"><span class="ico">📺</span><b>Abrir la pantalla</b><small>En la laptop o TV conectada a los parlantes</small></button>
+      <div class="card-btn"><span class="ico">🎤</span><b>Usar mi celular de micrófono</b><small>Escribe el código que aparece en la pantalla</small>
+        <form id="homeJoin" class="row"><input id="homeCode" placeholder="CÓDIGO" maxlength="5" autocomplete="off"><button class="primary">Entrar</button></form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PANTALLA (TV) ========== -->
+<section id="tv" class="hidden">
+  <div id="tvStart" class="overlay">
+    <div class="logo big">Canta<b>Ya</b></div>
+    <p>Conecta esta pantalla a la TV o a los parlantes.</p>
+    <button class="primary huge" id="tvStartBtn">▶ Empezar la fiesta</button>
+    <p class="muted small">Un toque para activar el sonido.</p>
+  </div>
+  <header class="tv-head">
+    <div class="logo">Canta<b>Ya</b></div>
+    <form id="tvSearch" class="search"><input id="tvQ" placeholder="Busca una canción o pega un link de YouTube…" autocomplete="off"><button class="primary">Buscar</button></form>
+    <span id="netStatus" class="pill">Conectando…</span>
+    <button id="tvSettingsBtn" title="Ajustes">⚙️ Ajustes</button>
+  </header>
+  <main class="stage">
+    <div class="video">
+      <div id="ytBox"><div id="yt"></div></div>
+      <div id="idle" class="idle">
+        <div class="logo big">Canta<b>Ya</b></div>
+        <h2>Escanea el código QR con tu celular para unirte</h2>
+        <p class="muted">Tu celular será el micrófono. Busca una canción y ¡a cantar!</p>
+      </div>
+      <div id="results" class="results hidden">
+        <div class="results-head"><b id="resTitle">Resultados</b><label>¿Quién canta? <select id="resSinger"></select></label><button id="resClose">✕ Cerrar</button></div>
+        <div id="resGrid" class="grid"></div>
+      </div>
+    </div>
+    <div id="hud" class="hud hidden">
+      <div class="hud-singer"><small>Cantando</small><b id="hudSinger">—</b></div>
+      <div class="hud-title" id="hudTitle"></div>
+      <div class="hud-note" id="hudNote">–</div>
+      <div class="hud-meter meter"><i id="hudLevel"></i></div>
+      <div class="hud-score"><small>Puntaje</small><b id="hudScore">–</b></div>
+    </div>
+  </main>
+  <aside class="side">
+    <div class="card room">
+      <div id="qr"></div>
+      <div><small class="muted">Código de sala</small><div id="roomCode" class="code">-----</div><small class="muted url" id="roomUrl"></small></div>
+    </div>
+    <div class="card"><h3>🎤 Micrófonos <span id="micCount" class="pill">0</span></h3><div id="micList" class="list"></div></div>
+    <div class="card grow"><h3>🎵 En fila</h3><div id="queueList" class="list"></div>
+      <div class="row ctrls"><button id="btnPause" title="Pausa / seguir">⏯ Pausa</button><button id="btnSkip">⏭ Saltar</button><button id="btnRestart" title="Repetir">↺</button></div>
+    </div>
+    <div class="card"><h3>🏆 Ranking de la noche</h3><ol id="rankList" class="rank"></ol></div>
+  </aside>
+
+  <div id="settings" class="modal hidden">
+    <div class="modal-card">
+      <h2>⚙️ Ajustes</h2>
+      <label>Clave de YouTube (API key)<input id="setKey" placeholder="AIza…" autocomplete="off" spellcheck="false"></label>
+      <div class="small muted">Sin clave igual puedes pegar links de YouTube. Con la clave puedes buscar cualquier canción. Cómo sacarla (gratis):
+        <ol>
+          <li>Entra a <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">console.cloud.google.com</a> y crea un proyecto.</li>
+          <li>Busca <b>YouTube Data API v3</b> y pulsa <b>Habilitar</b>.</li>
+          <li>Ve a <b>Credenciales → Crear credenciales → Clave de API</b>.</li>
+          <li>Copia la clave y pégala aquí.</li>
+        </ol>
+      </div>
+      <button id="setTest">Probar clave</button>
+      <label>Volumen de los micrófonos <input type="range" id="setVol" min="0" max="2" step="0.05"></label>
+      <label>Eco del micrófono (reverberación) <input type="range" id="setRev" min="0" max="1" step="0.05"></label>
+      <div class="row"><button id="setResetRank">Borrar ranking</button><button id="setNewRoom">Nuevo código de sala</button></div>
+      <div class="row end"><button id="setClose">Cerrar</button><button class="primary" id="setSave">Guardar</button></div>
+    </div>
+  </div>
+  <div id="scoreBox" class="overlay hidden"></div>
+</section>
+
+<!-- ========== CELULAR (MICRÓFONO) ========== -->
+<section id="mic" class="hidden">
+  <div id="micJoin" class="phone">
+    <div class="logo big">Canta<b>Ya</b></div>
+    <p class="muted">Tu celular será el micrófono 🎤</p>
+    <label>Código de la pantalla<input id="mjCode" maxlength="5" autocomplete="off"></label>
+    <label>Tu nombre<input id="mjName" maxlength="24" placeholder="Ej: David" autocomplete="nickname"></label>
+    <label class="check"><input type="checkbox" id="mjNr" checked> Reducir ruido y acople (recomendado)</label>
+    <button class="primary huge" id="mjGo">Conectar micrófono</button>
+    <p id="mjErr" class="err"></p>
+    <div class="tips"><b>Para que suene bien:</b>
+      <ul>
+        <li>Celular y pantalla en el mismo WiFi.</li>
+        <li>Habla cerca del celular, como un micrófono normal.</li>
+        <li>Si chilla o hace eco, aléjate de los parlantes o baja el volumen.</li>
+        <li>No bloquees la pantalla del celular mientras cantas.</li>
+      </ul>
+    </div>
+  </div>
+  <div id="micMain" class="phone hidden">
+    <div class="m-top"><div class="logo">Canta<b>Ya</b></div><span id="mStatus" class="pill">Conectando…</span></div>
+    <div class="now" id="mNow">Nada sonando todavía</div>
+    <button id="mBig" class="bigmic"><span id="mRing"></span><span class="mi">🎤</span><small id="mNote">Habla para probar</small></button>
+    <div class="row ctrls"><button id="mMute">🔇 Silenciar</button></div>
+    <div class="row ctrls"><button data-cmd="pause">⏯ Pausa</button><button data-cmd="skip">⏭ Saltar</button><button data-cmd="restart">↺ Repetir</button></div>
+    <div class="tabs"><button class="tab on" data-tab="buscar">🔎 Buscar</button><button class="tab" data-tab="fila">🎵 Fila <span id="mQCount"></span></button></div>
+    <div id="tabBuscar"><form id="mSearch" class="search"><input id="mQ" placeholder="Canción o link de YouTube" autocomplete="off"><button class="primary">Buscar</button></form><div id="mResults" class="mlist"></div></div>
+    <div id="tabFila" class="hidden"><div id="mQueue" class="mlist"></div></div>
+  </div>
+  <div id="mScore" class="overlay hidden"></div>
+</section>
+
+<div id="toasts"></div>
+
+<script>/*__QR__*/</script>
+<script>/*__PEERJS__*/</script>
+<script>
+/*__APP__*/
+</script>
+</body>
+</html>

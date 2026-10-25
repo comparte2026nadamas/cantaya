@@ -1,0 +1,8 @@
+[build]
+  publish = "dist"
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy = "microphone=(self)"
